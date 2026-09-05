@@ -24,7 +24,7 @@ public class TaskService {
     public Task createTask(
             CreateTaskRequest request) {
 
-        Task task = new Task(0,request.getTitle(),request.getDescription());
+        Task task = new Task(0,request.getTitle(),request.getDescription(), request.isCompleted(), request.getTime());
 
         return taskRepository.save(task);
     }

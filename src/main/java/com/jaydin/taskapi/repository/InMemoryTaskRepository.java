@@ -20,7 +20,7 @@ public class InMemoryTaskRepository implements TaskRepository {
     public Task save(Task task) {
         Task taskToSave = task;
         if (task.getId() == 0){
-            taskToSave = new Task(nextId, task.getTitle(), task.getDescription());
+            taskToSave = new Task(nextId, task.getTitle(), task.getDescription(), task.isCompleted() ,task.getTime());
         }
         tasks.add(taskToSave);
         return taskToSave;
