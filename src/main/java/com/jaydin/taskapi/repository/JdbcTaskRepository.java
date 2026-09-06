@@ -1,6 +1,7 @@
 package com.jaydin.taskapi.repository;
 
 import com.jaydin.taskapi.model.Task;
+import com.jaydin.taskapi.service.DatabaseConnectionProvider;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -8,13 +9,11 @@ import java.util.List;
 
 public class JdbcTaskRepository implements TaskRepository{
 
-    private  String jdbcUrl = "jdbc:h2:mem:testdb";
-    private String username = "sa";
-    private  String password = "ps";
 
+    private final DatabaseConnectionProvider connectionProvider;
 
     public JdbcTaskRepository(){
-
+        this.connectionProvider = connectionProvider;
     }
     public void init() {
         String createTableSql = "CREATE TABLE IF NOT EXISTS Tasks(" +
@@ -25,7 +24,7 @@ public class JdbcTaskRepository implements TaskRepository{
                 "CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 
 
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement createStmt = conn.prepareStatement(createTableSql)) {
             createStmt.executeUpdate();
         } catch (SQLException e) {
@@ -37,7 +36,7 @@ public class JdbcTaskRepository implements TaskRepository{
     public Task save(Task task) {
         String insertSql = "INSERT INTO Tasks (TITLE, DESCRIPTION, COMPLETED) VALUES (?, ?, ?)";
 
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
 
             insertStmt.setString(1, task.getTitle());
@@ -60,7 +59,7 @@ public class JdbcTaskRepository implements TaskRepository{
     @Override
     public Task findById(int id) {
         String fetchSQL = "SELECT * FROM Tasks WHERE ID = ?";
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+        try (Connection conn = connectionProvider.getConnection();
             PreparedStatement fetchStmt = conn.prepareStatement(fetchSQL)){
             fetchStmt.setInt(1, id);
 
@@ -88,7 +87,7 @@ public class JdbcTaskRepository implements TaskRepository{
     public List<Task> findAll() {
         String findAllSql = "SELECT * FROM Tasks";
         List<Task> tasks = new ArrayList<>();
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+        try (Connection conn = connectionProvider.getConnection();
             PreparedStatement findStmt = conn.prepareStatement(findAllSql)){
             try(ResultSet rs = findStmt.executeQuery()){
 
@@ -114,7 +113,7 @@ public class JdbcTaskRepository implements TaskRepository{
     @Override
     public void deleteById(int id) {
         String deleteSql = "DELETE FROM Tasks WHERE ID = ?";
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+        try (Connection conn = connectionProvider.getConnection();
             PreparedStatement deleteStmt = conn.prepareStatement(deleteSql))   {
             deleteStmt.setInt(1, id);
             deleteStmt.executeUpdate();
@@ -125,7 +124,7 @@ public class JdbcTaskRepository implements TaskRepository{
 
     public Task update(Task task) {
         String updateSql = "UPDATE Tasks SET TITLE = ?, DESCRIPTION = ?, COMPLETED = ? WHERE ID = ?";
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+        try (Connection conn = connectionProvider.getConnection();
         PreparedStatement updateStmt = conn.prepareStatement(updateSql)){
             updateStmt.setString(1, task.getTitle());
             updateStmt.setString(2, task.getDescription());

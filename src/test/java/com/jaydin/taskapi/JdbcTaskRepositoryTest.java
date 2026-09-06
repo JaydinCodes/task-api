@@ -1,4 +1,4 @@
-package com.jaydin.taskapi.repository;
+package com.jaydin.taskapi;
 
 import com.jaydin.taskapi.model.Task;
 import org.junit.jupiter.api.BeforeEach;
