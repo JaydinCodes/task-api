@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class Task {
 
-    private final int id;
+    private int id;
     private String title;
     private String description;
     private boolean completed;
@@ -64,7 +64,15 @@ public class Task {
                 "}";
     }
 
-    public void setId(int anInt) {
-        this.id = anInt;
+    public void setId(int taskId) {
+        this.id = taskId;
+    }
+
+    public void setTitle(String s) {
+        this.title = s;
+    }
+
+    public void setCompleted(boolean b) {
+        this.completed = b;
     }
 }
