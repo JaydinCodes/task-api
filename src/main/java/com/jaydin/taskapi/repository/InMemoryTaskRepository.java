@@ -22,10 +22,16 @@ public class InMemoryTaskRepository implements TaskRepository {
     public Task save(Task task) {
         Task taskToSave = task;
         if (task.getId() == 0){
-            taskToSave = new Task(nextId, task.getTitle(), task.getDescription(), task.isCompleted() ,task.getTime());
+            taskToSave = new Task(nextId++, task.getTitle(), task.getDescription(), task.isCompleted() ,task.getTime());
         }
         tasks.add(taskToSave);
         return taskToSave;
+    }
+
+    @Override
+    public Task update(Task task) {
+        int index = tasks.indexOf(task);
+        return index < 0 ? null : tasks.set(index, task);
     }
 
     @Override
@@ -39,21 +45,8 @@ public class InMemoryTaskRepository implements TaskRepository {
     }
 
     @Override
-    public void deleteById(int id) {
-
-        tasks.removeIf(task -> task.getId() == id);
-
-    }
-
-    @Override
-    public Task replaceTask(Task olderTask, Task newTask) {
-        int index = tasks.indexOf(olderTask);
-        if (index < 0) {
-            return null;
-        }
-        newTask.setId(olderTask.getId());
-        tasks.set(index, newTask);
-        return newTask;
+    public boolean deleteById(int id) {
+        return tasks.removeIf(task -> task.getId() == id);
     }
 
 }

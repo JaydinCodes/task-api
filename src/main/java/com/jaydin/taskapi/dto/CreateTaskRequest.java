@@ -1,13 +1,15 @@
 package com.jaydin.taskapi.dto;
 
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class CreateTaskRequest {
 
+    @NotBlank(message = "title must not be blank")
+    @Size(max = 50, message = "title must be at most 50 characters")
     private String title;
     private String description;
     private Boolean completed;
-    private LocalDateTime time;
 
     public CreateTaskRequest() {
     }
@@ -24,17 +26,15 @@ public class CreateTaskRequest {
         return completed;
     }
 
-    public LocalDateTime getTime(){
-        time =  LocalDateTime.now();
-        return time;
-    }
-
-
     public void setTitle(String title) {
         this.title = title;
     }
 
     public void setDescription(String description){
         this.description = description;
+    }
+
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
     }
 }

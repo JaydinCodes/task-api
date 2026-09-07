@@ -5,6 +5,7 @@ import com.jaydin.taskapi.dto.UpdateTaskRequest;
 import com.jaydin.taskapi.model.Task;
 import com.jaydin.taskapi.repository.InMemoryTaskRepository;
 import com.jaydin.taskapi.repository.TaskRepository;
+import com.jaydin.taskapi.exception.TaskNotFoundException;
 
 import com.jaydin.taskapi.service.TaskService;
 import org.junit.jupiter.api.Test;
@@ -40,10 +41,10 @@ public class TaskServiceTest {
         TaskService service = new TaskService(repository);
 
         CreateTaskRequest request = new CreateTaskRequest();
-        request.setTitle(null); // Our Task model throws NullPointerException if title is null
+        request.setTitle(null);
 
         // Act & Assert
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             service.createTask(request);
         });
     }
@@ -73,8 +74,7 @@ public class TaskServiceTest {
         TaskService service = new TaskService(repository);
 
         // Act & Assert
-        // We expect the IllegalArgumentException we wrote in our getTaskById method
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(TaskNotFoundException.class, () -> {
             service.getTaskById(999);
         });
     }
@@ -134,7 +134,7 @@ public class TaskServiceTest {
 
         // Assert
         // If it was deleted, trying to get it again should throw our exception
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(TaskNotFoundException.class, () -> {
             service.getTaskById(task.getId());
         });
     }

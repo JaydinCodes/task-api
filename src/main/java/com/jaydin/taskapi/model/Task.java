@@ -1,7 +1,6 @@
 package com.jaydin.taskapi.model;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 public class Task {
 
@@ -13,9 +12,9 @@ public class Task {
 
     public Task(int id, String title, String description, Boolean completed, LocalDateTime time){
         this.id = id;
-        this.title = Objects.requireNonNull(title, "Title cannot be null");
-        this.description = description;
-        this.completed = completed;
+        this.title = requireTitle(title);
+        this.description = description == null ? "" : description;
+        this.completed = Boolean.TRUE.equals(completed);
         this.time = time;
 
     }
@@ -45,8 +44,8 @@ public class Task {
             String title,
             String description) {
 
-        this.title = Objects.requireNonNull(title, "Title cannot be null");
-        this.description = description;
+        this.title = requireTitle(title);
+        this.description = description == null ? "" : description;
 
     }
 
@@ -74,5 +73,15 @@ public class Task {
 
     public void setCompleted(boolean b) {
         this.completed = b;
+    }
+
+    public void replace(String title, String description, boolean completed) {
+        update(title, description);
+        this.completed = completed;
+    }
+
+    private String requireTitle(String title) {
+        if (title == null || title.isBlank()) throw new IllegalArgumentException("Title must not be blank");
+        return title;
     }
 }

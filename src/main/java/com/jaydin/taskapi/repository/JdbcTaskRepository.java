@@ -110,48 +110,29 @@ public class JdbcTaskRepository implements TaskRepository{
     }
 
     @Override
-    public void deleteById(int id) {
+    public boolean deleteById(int id) {
         String deleteSql = "DELETE FROM Tasks WHERE ID = ?";
         try (Connection conn = connectionProvider.getConnection();
             PreparedStatement deleteStmt = conn.prepareStatement(deleteSql))   {
             deleteStmt.setInt(1, id);
-            deleteStmt.executeUpdate();
+            return deleteStmt.executeUpdate() == 1;
         } catch (SQLException e){
             throw new RuntimeException("Failed to delete Task", e);
         }
     }
 
     @Override
-    public Task replaceTask(Task oldTask, Task newTask){
-        String deleteSql = "DELETE FROM Tasks WHERE ID = ?";
-        String insertSql = "INSERT INTO Tasks (TITLE, DESCRIPTION, COMPLETED) VALUES (?, ?, ?)";
-        try(Connection conn = connectionProvider.getConnection()){
-            conn.setAutoCommit(false); // Begin the Transaction
-            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql);
-                 PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)){
-                    deleteStmt.setInt(1, oldTask.getId());
-                    deleteStmt.executeUpdate();
-
-                    insertStmt.setString(1, newTask.getTitle());
-                    insertStmt.setString(2, newTask.getDescription());
-                    insertStmt.setBoolean(3, newTask.isCompleted());
-                    insertStmt.executeUpdate();
-
-                    try(ResultSet rs = insertStmt.getGeneratedKeys()){
-                        if (rs.next()){
-                            newTask.setId(rs.getInt(1));
-                        }
-                    }
-                    conn.commit(); // Commit the transaction
-                    return newTask;
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            } finally {
-                conn.setAutoCommit(true);
-            }
+    public Task update(Task task){
+        String updateSql = "UPDATE Tasks SET TITLE = ?, DESCRIPTION = ?, COMPLETED = ? WHERE ID = ?";
+        try (Connection conn = connectionProvider.getConnection();
+             PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+            updateStmt.setString(1, task.getTitle());
+            updateStmt.setString(2, task.getDescription());
+            updateStmt.setBoolean(3, task.isCompleted());
+            updateStmt.setInt(4, task.getId());
+            return updateStmt.executeUpdate() == 1 ? task : null;
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to replace task", e);
+            throw new RuntimeException("Failed to update task", e);
         }
     }
 

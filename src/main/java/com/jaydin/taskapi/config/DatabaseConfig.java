@@ -9,6 +9,6 @@ public class DatabaseConfig {
 
     @Bean
     public DatabaseConnectionProvider databaseConnectionProvider(){
-        return new DatabaseConnectionProvider("jdbc:h2:mem:testdb", "sa", "ps");
+        return new DatabaseConnectionProvider("jdbc:h2:mem:taskdb;DB_CLOSE_DELAY=-1", "sa", "pa");
     }
 }

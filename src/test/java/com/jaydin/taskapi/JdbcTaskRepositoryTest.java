@@ -42,7 +42,7 @@ class JdbcTaskRepositoryTest {
         // modify + update
         fetched.setTitle("Write tests (updated)");
         fetched.setCompleted(true);
-        Task updated = repo.replaceTask(saved, fetched);
+        Task updated = repo.update(fetched);
         assertEquals("Write tests (updated)", updated.getTitle());
 
         // findById again — confirm update persisted
