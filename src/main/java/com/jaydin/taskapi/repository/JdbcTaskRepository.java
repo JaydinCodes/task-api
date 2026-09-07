@@ -2,20 +2,26 @@ package com.jaydin.taskapi.repository;
 
 import com.jaydin.taskapi.model.Task;
 import com.jaydin.taskapi.service.DatabaseConnectionProvider;
+import jakarta.annotation.PostConstruct;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
+@Primary
 public class JdbcTaskRepository implements TaskRepository{
-
 
     private final DatabaseConnectionProvider connectionProvider;
 
     public JdbcTaskRepository(DatabaseConnectionProvider connectionProvider){
         this.connectionProvider = connectionProvider;
     }
+    @PostConstruct
     public void init() {
         String createTableSql = "CREATE TABLE IF NOT EXISTS Tasks(" +
                 "ID INT AUTO_INCREMENT PRIMARY KEY, " +

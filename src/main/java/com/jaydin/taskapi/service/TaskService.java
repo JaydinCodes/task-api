@@ -4,9 +4,11 @@ import com.jaydin.taskapi.dto.CreateTaskRequest;
 import com.jaydin.taskapi.dto.UpdateTaskRequest;
 import com.jaydin.taskapi.model.Task;
 import com.jaydin.taskapi.repository.TaskRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class TaskService {
 
     private final TaskRepository taskRepository;
@@ -60,6 +62,10 @@ public class TaskService {
         Task task = taskRepository.findById(id);
         task.isCompleted();
         return taskRepository.save(task);
+    }
+
+    public Task replaceTask(Task oldTask , Task newTask){
+        return taskRepository.replaceTask(oldTask, newTask);
     }
 
 }

@@ -2,10 +2,13 @@ package com.jaydin.taskapi.service;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.stereotype.Component;
 
 import java.sql.DriverManager;
 import java.sql.Connection;
 import java.sql.SQLException;
+
+
 public class DatabaseConnectionProvider implements AutoCloseable{
 
     private final HikariDataSource dataSource;

@@ -2,10 +2,12 @@ package com.jaydin.taskapi.repository;
 
 
 import com.jaydin.taskapi.model.Task;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class InMemoryTaskRepository implements TaskRepository {
 
     private final List<Task> tasks;
@@ -43,5 +45,15 @@ public class InMemoryTaskRepository implements TaskRepository {
 
     }
 
+    @Override
+    public Task replaceTask(Task olderTask, Task newTask) {
+        int index = tasks.indexOf(olderTask);
+        if (index < 0) {
+            return null;
+        }
+        newTask.setId(olderTask.getId());
+        tasks.set(index, newTask);
+        return newTask;
+    }
 
 }

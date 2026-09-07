@@ -1,6 +1,8 @@
 package com.jaydin.taskapi;
 
 import com.jaydin.taskapi.model.Task;
+import com.jaydin.taskapi.repository.JdbcTaskRepository;
+import com.jaydin.taskapi.service.DatabaseConnectionProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +16,12 @@ class JdbcTaskRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        repo = new JdbcTaskRepository();
+        DatabaseConnectionProvider connectionProvider = new DatabaseConnectionProvider(
+                "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
+                "sa",
+                "pa"
+        );
+        repo = new JdbcTaskRepository(connectionProvider);
         repo.init();
     }
 
@@ -35,7 +42,7 @@ class JdbcTaskRepositoryTest {
         // modify + update
         fetched.setTitle("Write tests (updated)");
         fetched.setCompleted(true);
-        Task updated = repo.replaceTask(fetched);
+        Task updated = repo.replaceTask(saved, fetched);
         assertEquals("Write tests (updated)", updated.getTitle());
 
         // findById again — confirm update persisted
