@@ -7,4 +7,5 @@ public interface TaskRepository {
     Task findById(int id);
     List<Task> findAll();
     void deleteById(int id);
+    Task replaceTask(Task olderTask, Task newTask);
 }

@@ -4,6 +4,7 @@ import com.jaydin.taskapi.model.Task;
 import com.jaydin.taskapi.service.DatabaseConnectionProvider;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class JdbcTaskRepository implements TaskRepository{
 
     private final DatabaseConnectionProvider connectionProvider;
 
-    public JdbcTaskRepository(){
+    public JdbcTaskRepository(DatabaseConnectionProvider connectionProvider){
         this.connectionProvider = connectionProvider;
     }
     public void init() {
@@ -30,6 +31,15 @@ public class JdbcTaskRepository implements TaskRepository{
         } catch (SQLException e) {
             throw new RuntimeException("Failed to initialize Tasks table", e);
         }
+    }
+
+    private Task mapRowToTask(ResultSet rs) throws SQLException {
+        int taskId = rs.getInt("ID");
+        String title = rs.getString("TITLE");
+        String des = rs.getString("DESCRIPTION");
+        Boolean completed = rs.getBoolean("COMPLETED");
+        LocalDateTime time = rs.getTimestamp("CREATED_AT").toLocalDateTime();
+        return new Task(taskId, title, des, completed, time);
     }
 
     @Override
@@ -65,15 +75,7 @@ public class JdbcTaskRepository implements TaskRepository{
 
             try(ResultSet rs = fetchStmt.executeQuery()){
                 if (rs.next()){
-                    int taskId = rs.getInt("ID");
-                    String title = rs.getString("TITLE");
-                    String des = rs.getString("DESCRIPTION");
-                    Boolean completed = rs.getBoolean("COMPLETED");
-                    Timestamp time = rs.getTimestamp("CREATED_AT");
-                    Task task = new Task(
-                            taskId, title, des, completed, time
-                    );
-                    return task;
+                    return mapRowToTask(rs);
                 }
             }
             return null;
@@ -92,21 +94,12 @@ public class JdbcTaskRepository implements TaskRepository{
             try(ResultSet rs = findStmt.executeQuery()){
 
                 while (rs.next()){
-                    int taskId = rs.getInt("ID");
-                    String title = rs.getString("TITLE");
-                    String des = rs.getString("DESCRIPTION");
-                    Boolean completed = rs.getBoolean("COMPLETED");
-                    Timestamp time = rs.getTimestamp("CREATED_AT");
-                    Task task = new Task(
-                            taskId, title, des, completed, time
-                    );
-                    tasks.add(task);
-
+                    tasks.add(mapRowToTask(rs));
                 }
             }
             return tasks;
         } catch (SQLException e){
-            throw new RuntimeException("Empty List");
+            throw new RuntimeException("Failed to find all tasks");
         }
     }
 
@@ -118,31 +111,42 @@ public class JdbcTaskRepository implements TaskRepository{
             deleteStmt.setInt(1, id);
             deleteStmt.executeUpdate();
         } catch (SQLException e){
-            throw new RuntimeException("Failed to delete Task");
+            throw new RuntimeException("Failed to delete Task", e);
         }
     }
 
-    public Task update(Task task) {
-        String updateSql = "UPDATE Tasks SET TITLE = ?, DESCRIPTION = ?, COMPLETED = ? WHERE ID = ?";
-        try (Connection conn = connectionProvider.getConnection();
-        PreparedStatement updateStmt = conn.prepareStatement(updateSql)){
-            updateStmt.setString(1, task.getTitle());
-            updateStmt.setString(2, task.getDescription());
-            updateStmt.setBoolean(3, task.isCompleted());
-            updateStmt.setInt(4, task.getId());
+    @Override
+    public Task replaceTask(Task oldTask, Task newTask){
+        String deleteSql = "DELETE FROM Tasks WHERE ID = ?";
+        String insertSql = "INSERT INTO Tasks (TITLE, DESCRIPTION, COMPLETED) VALUES (?, ?, ?)";
+        try(Connection conn = connectionProvider.getConnection()){
+            conn.setAutoCommit(false); // Begin the Transaction
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql);
+                 PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)){
+                    deleteStmt.setInt(1, oldTask.getId());
+                    deleteStmt.executeUpdate();
 
-            int rowsAffected = updateStmt.executeUpdate();
-            if (rowsAffected == 0) {
-                throw new RuntimeException("No task found with ID: " + task.getId());
+                    insertStmt.setString(1, newTask.getTitle());
+                    insertStmt.setString(2, newTask.getDescription());
+                    insertStmt.setBoolean(3, newTask.isCompleted());
+                    insertStmt.executeUpdate();
+
+                    try(ResultSet rs = insertStmt.getGeneratedKeys()){
+                        if (rs.next()){
+                            newTask.setId(rs.getInt(1));
+                        }
+                    }
+                    conn.commit(); // Commit the transaction
+                    return newTask;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
             }
-
-            return task;
-
-
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to update task");
+            throw new RuntimeException("Failed to replace task", e);
         }
-
     }
 
 
